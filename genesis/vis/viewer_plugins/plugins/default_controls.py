@@ -1,4 +1,5 @@
 import os
+import time
 from typing import TYPE_CHECKING
 
 import genesis as gs
@@ -103,7 +104,13 @@ class DefaultControlsPlugin(ViewerPlugin):
 
     def _toggle_record_video(self):
         if self.viewer.viewer_flags["record"]:
-            self.viewer.save_video()
+            save_dir = self.viewer.viewer_flags["save_directory"] or os.getcwd()
+            os.makedirs(save_dir, exist_ok=True)
+            filename = os.path.join(save_dir, f"genesis_viewer_{time.strftime('%Y%m%d_%H%M%S')}.mp4")
+            self.viewer.save_video(filename)
+            self.viewer.viewer_flags["save_directory"] = save_dir
+            gs.logger.info(f'Saved viewer recording to ~<"{filename}">~.')
+            self.viewer.set_message_text(f"Saved video: {filename}")
             self.viewer.set_caption(self.viewer.viewer_flags["window_title"])
         else:
             # Importing moviepy is very slow and not used very often. Let's delay import.
